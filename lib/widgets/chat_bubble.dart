@@ -3,17 +3,26 @@ import 'package:flutter/material.dart';
 class ChatBubble extends StatelessWidget {
   final String text;
   final String uid;
+  final AnimationController animationController;
 
   const ChatBubble({
     Key? key,
     required this.text,
     required this.uid,
+    required this.animationController,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: uid == '123' ? _myMessage() : _notMyMessage(),
+    return SizeTransition(
+      sizeFactor:
+          CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+      child: FadeTransition(
+        opacity: animationController,
+        child: Container(
+          child: uid == '123' ? _myMessage() : _notMyMessage(),
+        ),
+      ),
     );
   }
 

@@ -11,20 +11,11 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final _textController = TextEditingController();
   final _textFocus = FocusNode();
 
-  final List<ChatBubble> _messages = [
-    const ChatBubble(
-        text:
-            'Consectetur et non elit mollit consequat aliquip elit dolor minim nostrud ut sint non velit.',
-        uid: '123'),
-    const ChatBubble(
-        text: 'Aute est laboris aliqua dolor duis duis.', uid: '1213'),
-    const ChatBubble(text: 'Hola Mundo', uid: '111'),
-    const ChatBubble(text: 'Hola Mundo', uid: '123'),
-  ];
+  final List<ChatBubble> _messages = [];
 
   bool _isWriting = false;
 
@@ -67,7 +58,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           const Divider(height: 1),
-          //TODO Caja de texto
           Container(
             color: Colors.white,
             child: _inputChat(),
@@ -129,9 +119,33 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   _handleSubmit(String text) {
-    print(text);
+    if (text.isEmpty) return;
+
     _textFocus.requestFocus();
     _textController.clear();
+
+    final newMessage = ChatBubble(
+      text: text,
+      uid: '123',
+      animationController: AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 200),
+      ),
+    );
+    _messages.insert(0, newMessage);
+    newMessage.animationController.forward();
+
     setState(() => _isWriting = false);
+  }
+
+  @override
+  void dispose() {
+    //OFF del socket
+
+    for (ChatBubble message in _messages) {
+      message.animationController.dispose();
+    }
+
+    super.dispose();
   }
 }
