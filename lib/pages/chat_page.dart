@@ -41,7 +41,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
               'Melissa Flores',
               style: TextStyle(
                 color: Colors.black87,
-                fontSize: 12,
+                fontSize: 13,
               ),
             )
           ],

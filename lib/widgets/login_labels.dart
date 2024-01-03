@@ -24,7 +24,6 @@ class Labels extends StatelessWidget {
             fontSize: 15,
           ),
         ),
-        const SizedBox(height: 20),
         GestureDetector(
           onTap: () => Navigator.pushReplacementNamed(context, route),
           child: Text(

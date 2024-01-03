@@ -1,6 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:chat_app/helpers/show_alerts.dart';
+import 'package:chat_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chat_app/widgets/custom_input.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/blue_button.dart';
 import '../widgets/login_labels.dart';
@@ -57,6 +62,8 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -75,12 +82,23 @@ class __FormState extends State<_Form> {
           isPassword: true,
         ),
         BlueButton(
-          placeholder: 'Login',
-          onPressed: () {
-            print(emailCtrl.text);
-            print(passCtrl.text);
-          },
-        ),
+            placeholder: 'Login',
+            onPressed: authService.authenticating
+                ? null
+                : () async {
+                    FocusScope.of(context).unfocus();
+                    final loginOk = await authService.login(
+                        emailCtrl.text.trim(), passCtrl.text.trim());
+
+                    if (loginOk) {
+                      // TODO: Connect socket server
+                      Navigator.pushReplacementNamed(context, 'users');
+                    } else {
+                      //Show alert
+                      showAlert(context, 'Login incorrecto',
+                          'Revise sus credenciales.');
+                    }
+                  }),
       ]),
     );
   }

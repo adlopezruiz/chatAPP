@@ -1,5 +1,7 @@
 import 'package:chat_app/models/user.dart';
+import 'package:chat_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 
 class UsersPage extends StatefulWidget {
@@ -11,10 +13,9 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   final users = [
-    User(uid: '1', name: 'Adri', email: 'adri@test.com', isOnline: true),
-    User(
-        uid: '2', name: 'Jose Adrian', email: 'jadri@test.com', isOnline: true),
-    User(uid: '3', name: 'Ismael', email: 'ismael@test.com', isOnline: false),
+    User(uid: '1', name: 'Adri', email: 'adri@test.com', online: true),
+    User(uid: '2', name: 'Jose Adrian', email: 'jadri@test.com', online: true),
+    User(uid: '3', name: 'Ismael', email: 'ismael@test.com', online: false),
   ];
 
   final RefreshController _refreshController =
@@ -22,12 +23,14 @@ class _UsersPageState extends State<UsersPage> {
 
   @override
   Widget build(BuildContext context) {
+    AuthService authService = Provider.of<AuthService>(context);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 3,
-        title: const Text(
-          'Mi nombre',
-          style: TextStyle(color: Colors.black87),
+        title: Text(
+          authService.user?.name ?? '',
+          style: const TextStyle(color: Colors.black87),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -36,7 +39,10 @@ class _UsersPageState extends State<UsersPage> {
             Icons.exit_to_app,
             size: 35,
           ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, 'login');
+            AuthService.deleteToken();
+          },
         ),
         actions: [
           Container(
@@ -84,7 +90,7 @@ class _UsersPageState extends State<UsersPage> {
         width: 10,
         height: 10,
         decoration: BoxDecoration(
-          color: user.isOnline ? Colors.green[300] : Colors.red,
+          color: user.online ? Colors.green[300] : Colors.red,
           borderRadius: BorderRadius.circular(100),
         ),
       ),
