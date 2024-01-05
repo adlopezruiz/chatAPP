@@ -1,5 +1,8 @@
 import 'package:chat_app/models/user.dart';
 import 'package:chat_app/services/auth_service.dart';
+import 'package:chat_app/services/chat_service.dart';
+import 'package:chat_app/services/socket_service.dart';
+import 'package:chat_app/services/users_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
@@ -12,11 +15,14 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
-  final users = [
-    User(uid: '1', name: 'Adri', email: 'adri@test.com', online: true),
-    User(uid: '2', name: 'Jose Adrian', email: 'jadri@test.com', online: true),
-    User(uid: '3', name: 'Ismael', email: 'ismael@test.com', online: false),
-  ];
+  final userService = UsersService();
+  List<User> users = [];
+
+  @override
+  void initState() {
+    _loadUsers();
+    super.initState();
+  }
 
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
@@ -24,6 +30,7 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     AuthService authService = Provider.of<AuthService>(context);
+    SocketService socketService = Provider.of<SocketService>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +47,7 @@ class _UsersPageState extends State<UsersPage> {
             size: 35,
           ),
           onPressed: () {
+            socketService.disconnect();
             Navigator.pushReplacementNamed(context, 'login');
             AuthService.deleteToken();
           },
@@ -47,8 +55,9 @@ class _UsersPageState extends State<UsersPage> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 10),
-            child: //Icon(Icons.check_circle, color: Colors.green[400], size: 35),
-                Icon(Icons.offline_bolt, color: Colors.red[400], size: 35),
+            child: socketService.serverStatus == ServerStatus.online
+                ? Icon(Icons.check_circle, color: Colors.green[400], size: 35)
+                : Icon(Icons.offline_bolt, color: Colors.red[400], size: 35),
           ),
         ],
       ),
@@ -70,7 +79,7 @@ class _UsersPageState extends State<UsersPage> {
 
   ListView _listviewUsers() {
     return ListView.separated(
-      physics: const BouncingScrollPhysics(),
+      // physics: const BouncingScrollPhysics(),
       itemCount: users.length,
       itemBuilder: (BuildContext context, int index) {
         return _userTile(users[index]);
@@ -94,12 +103,18 @@ class _UsersPageState extends State<UsersPage> {
           borderRadius: BorderRadius.circular(100),
         ),
       ),
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+
+        chatService.userTo = user;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 
   void _loadUsers() async {
-    // monitor network fetch
-    await Future.delayed(const Duration(milliseconds: 1000));
+    users = await userService.getUsers();
+    setState(() {});
     // if failed,use refreshFailed()
     _refreshController.refreshCompleted();
   }
